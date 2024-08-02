@@ -20,4 +20,4 @@ code TBD
 ### Special Considerations 
 * The ESTOP switch needs to be pushed down for **atleast one second** for the RTU to receive the signal and publish the value. 
 * The ESTOP function clears after 1 minute. Normally an ESTOP would have to be cleared manually but for the sake of testing it will reset after the button is pressed.
-* They might be able to turn on the status light but the light is not the target. 
+* Testers might turn on the status light but the light is not the target. 
