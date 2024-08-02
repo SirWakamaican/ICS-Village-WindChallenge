@@ -10,7 +10,7 @@ The goal of the attacker would be to trigger the ESTOP without the switch (i.e. 
 Attack ESTOP = red light off and turbine off. 
 
 ### Diagram 
-![DNP3 Challenge Overview](./images/dnp3.png)
+![DNP3 Challenge Overview](./dnp3.png)
 
 ### Solution Example 
 ```
