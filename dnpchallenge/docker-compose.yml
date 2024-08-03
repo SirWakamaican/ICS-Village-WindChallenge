@@ -1,0 +1,26 @@
+services:
+  rtu:
+    container_name: otsim-rtu
+    image: ghcr.io.patsec/ot-sim/ot-sim:main
+    # image: ot-sim:test
+    volumes:
+      - ./rtuconfig/xml:/etc/otsim/config.xml
+      - /dev/gpiomem:/dev/gpiomem
+    privileged: true
+    command: /usr/local/bin/ot-sim-cpu-module /etc/otsim/config.xml
+    cap_add:
+      - SYS_RAWIO
+      - SYS_ADMIN
+
+  ied:
+    container_name: otsim-rtu
+    image: ghcr.io.patsec/ot-sim/ot-sim:main
+    # image: ot-sim:test
+    volumes:
+      - ./rtuconfig/xml:/etc/otsim/config.xml
+      - /dev/gpiomem:/dev/gpiomem
+    privileged: true
+    command: /usr/local/bin/ot-sim-cpu-module /etc/otsim/config.xml
+    cap_add:
+      - SYS_RAWIO
+      - SYS_ADMIN 
