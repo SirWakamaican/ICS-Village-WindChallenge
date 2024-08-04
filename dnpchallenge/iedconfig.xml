@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <ot-sim>
   <message-bus>
-    <pull-endpoint>tcp://127.0.0.1:1234</pull-endpoint>
-    <pub-endpoint>tcp://127.0.0.1:5678</pub-endpoint>
+    <pull-endpoint>tcp://127.0.0.1:9012</pull-endpoint>
+    <pub-endpoint>tcp://127.0.0.1:3456</pub-endpoint>
   </message-bus>
   <cpu>
     <module name="backplane">ot-sim-message-bus {{config_file}}</module>
@@ -37,16 +37,20 @@
   </dnp3>
   <logic>
     <period>1s</period>
+    <process-updates>true</process-updates>
     <program>
       <![CDATA[
-      turbine.status = turbine.control == false
-      turbine = turbine.control ? 1 : 0
+      turbine = control == 1 and estop == 0
+      status = turbine
+      # hack to get estop tag to show up in Telnet module
+      estop = estop
       ]]>
     </program>
     <variables>
       <turbine>0</turbine>
-      <turbine.control>1</turbine.contro>
-      <turbine.status>0</turbine.status>
+      <status tag="turbine.status">1</status>
+      <control tag="turbine.control">1</control>
+      <estop>0</estop>
     </variables>
   </logic>
   <rpi-gpio name="gpio" mode="bcm">
