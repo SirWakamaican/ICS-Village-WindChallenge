@@ -1,6 +1,6 @@
 PROGRAM start
   VAR
-    PB1 AT %IX0.0 : BOOL;
+    PB1 AT %MX0.0 : BOOL;
     LAMP AT %QX0.1 : BOOL;
   END_VAR
   VAR

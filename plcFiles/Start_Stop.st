@@ -1,8 +1,8 @@
 PROGRAM Start_Stop
   VAR
-    PB1 AT %IX0.2 : BOOL;
-    PB2 AT %IX0.3 : BOOL;
-    LAMP AT %QX0.4 : BOOL;
+    PB1 AT %MX0.2 : BOOL;
+    PB2 AT %MX0.3 : BOOL;
+    LAMP AT %QX0.0 : BOOL;
   END_VAR
 
   LAMP := NOT(PB2) AND (LAMP OR PB1);

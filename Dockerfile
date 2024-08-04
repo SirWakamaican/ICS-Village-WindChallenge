@@ -6,8 +6,8 @@ VOLUME /persistent
 RUN apt update
 RUN apt upgrade -y
 RUN apt install sudo pip systemctl wget -y
-RUN wget https://github.com/WiringPi/WiringPi/releases/download/2.61-1/wiringpi-2.61-1-armhf.deb
-RUN dpkg -i wiringpi-2.61-1-armhf.deb
+RUN wget https://github.com/WiringPi/WiringPi/releases/download/3.6/wiringpi_3.6_arm64.deb
+RUN dpkg -i wiringpi_3.6_arm64.deb
 RUN ./install.sh rpi
 RUN touch /persistent/mbconfig.cfg
 RUN touch /persistent/persistent.file
