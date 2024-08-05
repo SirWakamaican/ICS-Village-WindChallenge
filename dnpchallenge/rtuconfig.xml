@@ -12,8 +12,8 @@
     <module name="telnet">ot-sim-telnet-module {{config_file}}</module>
   </cpu>
   <dnp3 name="dnp3-outstation" mode="client">
-    <endpoint>rtu-ied:20000</endpoint>
-    <outstation name="client-ied">
+    <endpoint>ied:20000</endpoint>
+    <master name="client-ied">
         <local-address>1</local-address>
         <remote-address>10</remote-address>
         <input type="binary">
@@ -31,7 +31,7 @@
             <class>Class1</class>
             <sbo>false</sbo>
         </output>
-    </outstation>
+    </master>
   </dnp3>
   <logic>
     <period>1s</period>
@@ -42,14 +42,13 @@
       counter = estopactive ? (counter + 1) : 0
       estopactive = counter > 0 && counter < 60
       led = estopactive
-      turbine.control = estopactive ? 0 : 1
+      control = estopactive ? 0 : 1
       ]]>
     </program>
     <variables>
       <led>0</led>
       <switch>0</switch>
-      <turbine.control>1</turbine.contro>
-      <turbine.status>0</turbine.status>
+      <control tag="turbine.control">1</control>
     </variables>
   </logic>
   <rpi-gpio name="gpio" mode="bcm">
