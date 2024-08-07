@@ -26,6 +26,7 @@ Access the RTU
 Understand the RTU's connections
 
 ```query```
+
 ![Status of values](./telnet-query.png)
 
 Check the available modules
@@ -37,6 +38,7 @@ Disable the DNP3 master
 ```disable dnp3```
 
 Take over as the master of the outstation
+
 ```need to test still```
 
 ### Hints
