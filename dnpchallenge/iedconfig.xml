@@ -9,7 +9,6 @@
     <module name="dnp3">ot-sim-dnp3-module {{config_file}}</module>
     <module name="gpio">ot-sim-rpi-gpio-module {{config_file}}</module>
     <module name="logic">ot-sim-logic-module {{config_file}}</module>
-    <module name="telnet">ot-sim-telnet-module {{config_file}}</module>
   </cpu>
   <dnp3 name="dnp3-outstation" mode="server">
     <endpoint>0.0.0.0:20000</endpoint>
@@ -53,13 +52,9 @@
       <estop>0</estop>
     </variables>
   </logic>
-  <rpi-gpio name="gpio" mode="bcm">
+  <rpi-gpio name="gpio" mode="board">
     <output pin="18">
       <tag>turbine</tag>
     </output>
   </rpi-gpio>
-  <telnet>
-    <endpoint>:23</endpoint>
-    <banner>default</banner>
-  </telnet>
 </ot-sim>

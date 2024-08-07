@@ -51,7 +51,7 @@
       <control tag="turbine.control">1</control>
     </variables>
   </logic>
-  <rpi-gpio name="gpio" mode="bcm">
+  <rpi-gpio name="gpio" mode="board">
     <period>1</period>
     <input pin="16">
       <tag>switch</tag>

@@ -13,5 +13,3 @@ services:
     volumes:
       - ./iedconfig.xml:/etc/ot-sim/config.xml
       - /dev/gpiomem:/dev/gpiomem
-    ports:
-      - "127.0.0.2:23:23/tcp"
