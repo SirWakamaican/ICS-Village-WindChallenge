@@ -18,9 +18,28 @@ Attack ESTOP = red light off and turbine off.
 * Testers might turn on the status light but the light is not the target.
 
 ### Solution Example 
-```
-code TBD
-```
+
+Access the RTU
+
+```telnet 127.0.0.1```
+
+Understand the RTU's connections
+
+```query```
+![Status of values](./telnet-query.png)
+
+Check the available modules
+
+```modules```
+
+Disable the DNP3 master
+
+```disable dnp3```
+
+Take over as the master of the outstation
+```need to test still```
 
 ### Hints
-*  TBD
+1. Telnet is in play, so access to the master should take you no longer than 42 seconds.
+2. The query tells you which protocol is being used.
+3. Something about being the dnp3 master
