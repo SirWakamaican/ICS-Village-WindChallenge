@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html>
+    <body id="body" style="height: 100%; margin: 0px">
+        
+            <canvas id="canvas" width= "2232" height= "1684" style="height: 100vh;"></canvas>
+            <img id="map" src="map.png" style="display: none;" />
+            <button style="position: absolute; left: 0%; right: 0%;" onclick="reset()"></button>
+            <div id = "side" style = "background-color: lightgrey; float: right; height: 100vh;">
+                <img src="nrel-logo-web.svg" style="min-width: auto;">
+
+                <div style="display: flex; justify-content: space-around;">
+                    <p>
+                        Zone 1
+                    </p>
+                    <div id="zone1Div" style="background-color: green; width: 150px; display: flex; justify-content: center;">
+                        <p id="zone1Text">
+                            Normal
+                        </p>
+                    </div>
+                    
+                </div>
+                <div style="display: flex; justify-content: space-around;">
+                    <p>
+                        Zone 2
+                    </p>
+                    <div id="zone2Div" style="background-color: green; width: 150px; display: flex; justify-content: center;">
+                        <p id="zone2Text">
+                            Normal
+                        </p>
+                    </div>
+                    
+                </div>
+                <div style="display: flex; justify-content: space-around;">
+                    <p>
+                        Zone 3
+                    </p>
+                    <div id="zone3Div" style="background-color: green; width: 150px; display: flex; justify-content: center;">
+                        <p id="zone3Text">
+                            Normal
+                        </p>
+                    </div>
+                    
+                </div>
+                <div style="display: flex; justify-content: space-around;">
+                    <p>
+                        Zone 4
+                    </p>
+                    <div id="zone4Div" style="background-color: green; width: 150px; display: flex; justify-content: center;">
+                        <p id="zone4Text">
+                            Down
+                        </p>
+                    </div>
+                    
+                </div>
+                <div style="display: flex; justify-content: space-around;">
+                    <p>
+                        Zone 5
+                    </p>
+                    <div id="zone5Div" style="background-color: green; width: 150px; display: flex; justify-content: center;">
+                        <p id="zone5Text">
+                            Normal
+                        </p>
+                    </div>
+                    
+                </div>
+                <div style="display: flex; justify-content: space-around;">
+                    <p>
+                        Zone 6
+                    </p>
+                    <div id="zone6Div" style="background-color: green; width: 150px; display: flex; justify-content: center;">
+                        <p id="zone6Text">
+                            Normal
+                        </p>
+                    </div>
+                    
+                </div>
+            </div>
+            
+                
+            
+            <!--
+            <div style="width: 100%; display: flex;">
+                <div style = "flex-shrink: 1; background-color: #EBEBEB; min-width: 0;">
+                <canvas id="canvas" width= "1116" height= "842" style="flex: 1; min-width: 0; max-height: 100vh;">
+                    <div style="display:none;">
+                        <img id="map" src="map.png" />
+                      </div>
+                
+
+            </div>
+            <div style = "min-width: 300px; background-color: lightgrey; flex-grow: 1; display: flex; flex-direction: column;row-gap: 20px;">
+                <img src="nrel-logo-web.svg" style="min-width: auto;">
+
+                <div style="display: flex; justify-content: space-around;">
+                    <p>
+                        Zone 1
+                    </p>
+                    <div style="background-color: green; width: 150px; display: flex; justify-content: center;">
+                        <p id="zone1Text">
+                            Normal
+                        </p>
+                    </div>
+                    
+                </div>
+                <div style="display: flex; justify-content: space-around;">
+                    <p>
+                        Zone 2
+                    </p>
+                    <div style="background-color: green; width: 150px; display: flex; justify-content: center;">
+                        <p id="zone2Text">
+                            Normal
+                        </p>
+                    </div>
+                    
+                </div>
+                <div style="display: flex; justify-content: space-around;">
+                    <p>
+                        Zone 3
+                    </p>
+                    <div style="background-color: green; width: 150px; display: flex; justify-content: center;">
+                        <p id="zone3Text">
+                            Normal
+                        </p>
+                    </div>
+                    
+                </div>
+                <div style="display: flex; justify-content: space-around;">
+                    <p>
+                        Zone 4
+                    </p>
+                    <div style="background-color: red; width: 150px; display: flex; justify-content: center;">
+                        <p id="zone4Text">
+                            Down
+                        </p>
+                    </div>
+                    
+                </div>
+                <div style="display: flex; justify-content: space-around;">
+                    <p>
+                        Zone 5
+                    </p>
+                    <div style="background-color: green; width: 150px; display: flex; justify-content: center;">
+                        <p id="zone5Text">
+                            Normal
+                        </p>
+                    </div>
+                    
+                </div>
+                <div style="display: flex; justify-content: space-around;">
+                    <p>
+                        Zone 6
+                    </p>
+                    <div style="background-color: green; width: 150px; display: flex; justify-content: center;">
+                        <p id="zone6Text">
+                            Normal
+                        </p>
+                    </div>
+                    
+                </div>
+            </div> -->
+        
+    </body>
+    <script src="mqtt.min.js"></script>
+    <script>
+        window.onresize = resize;
+        
+
+        
+        const canvas = document.getElementById("canvas");
+        const ctx = canvas.getContext("2d");
+        const image = document.getElementById("map");
+        const side = document.getElementById("side");
+        const body = document.getElementById("body");
+        const zone1Text = document.getElementById('zone1Text')
+        const zone1Div = document.getElementById('zone1Div')
+        const zone2Text = document.getElementById('zone2Text')
+        const zone2Div = document.getElementById('zone2Div')
+
+        const zone3Text = document.getElementById('zone3Text')
+        const zone3Div = document.getElementById('zone3Div')
+
+        const zone4Text = document.getElementById('zone4Text')
+        const zone4Div = document.getElementById('zone4Div')
+
+        const zone5Text = document.getElementById('zone5Text')
+        const zone5Div = document.getElementById('zone5Div')
+
+        const zone6Text = document.getElementById('zone6Text')
+        const zone6Div = document.getElementById('zone6Div')
+
+
+        
+        function resize(){
+            side.style.width = (body.clientWidth - canvas.clientWidth)-1 + "px"
+
+        }
+        resize()
+        ctx.rect(20, 20, 150, 100);
+        ctx.fillStyle = "red";
+        textLocation=[[335,430],[1052,302],[1894,834],[490,1250],[1190,937],[1386,1419]]
+        shapes=[
+            [
+                [0,0],
+                [502,0],
+                [1019,699],
+                [1093,713],
+                [1072,799],
+                [0,799],
+                [0,0]
+
+            ],
+            [
+                [502,0],
+                [1019,699],
+                [1093,713],
+                [1942,0],
+                [502,0],
+
+            ],
+            [
+                [1942,0],
+                [1093,713],
+                [1245,780],
+                [2077,1684],
+                [2232,1684],
+                [2232,0],
+                [1942,0]
+
+
+            ],
+            [
+                [0,799],
+                [1072,799],
+                [995,915],
+                [995,1684],
+                [0,1684],
+                [0,799],
+
+
+
+            ],
+            [   
+                [995,1066],
+                [995,915],
+                [1072,799],
+                //[1072,780],
+                [1093,713],
+                [1245,780],
+                
+                [1519,1066],
+                [995,1066],
+               
+                
+                
+
+
+            ],
+            [
+                [995,1684],
+                [995,1066],
+                [1519,1066],
+                [2077,1684],
+                [995,1684],
+            ],
+
+
+            
+                
+        ]
+        /*
+                [995,1684]
+                [995,915],
+                [1072,799],
+                [1093,713],
+                [1245,780],
+                [2077,1684],
+                [995,1684]
+
+        */
+
+        function drawImage(ctx, good,z){
+            zone= z-1
+            ctx.beginPath();
+            if(good){
+                ctx.fillStyle = "green";
+            }
+            else{
+                ctx.fillStyle = "red";
+            }
+            ctx.globalAlpha = 0.4
+
+            
+
+
+            ctx.moveTo(shapes[zone][0][0],shapes[zone][0][1])
+            shapes[zone].forEach( pix =>{
+                ctx.lineTo(pix[0], pix[1]);
+            });
+            ctx.fill();
+            ctx.globalAlpha = 0.6;
+            ctx.textAlign = "center";
+            ctx.font = "120px Arial";
+            ctx.fillText(z+"", textLocation[zone][0], textLocation[zone][1]);
+            ctx.globalAlpha = 1;
+
+        }
+        //ctx.fill()
+        //ctx.drawImage(image, 0, 0);
+        
+        console.log("hit")
+        zones=[1,1,1,1,1,1]
+        function update(zone,good){
+            if (!isNumeric){
+                return
+            }
+            if(1>zone || zone>6){
+                return
+            }
+            if(zones[zone-1]==good){
+                return 
+            }
+            updateBoard(zone, good);
+            zones[zone-1]=good
+            ctx.drawImage(image, 0, 0);
+            for (let i = 1; i < 7; i++) {
+                drawImage(ctx, zones[i-1],i)
+            }
+
+
+        }
+        function updateBoard(zone, good){
+            if (!isNumeric){
+                return
+            }
+            if(1>zone || zone>6){
+                return
+            }
+            const Text = document.getElementById('zone'+zone+'Text')
+            const Div = document.getElementById('zone'+zone+'Div')
+            if (good){
+                Text.innerText="Normal"
+                Div.style.backgroundColor = "green"
+            }
+            else{
+                Text.innerText="Down"
+                Div.style.backgroundColor = "red"
+            }
+        }
+        function reset(){
+            for (let i = 1; i <=6 ; i++) {
+                let  Text = document.getElementById('zone'+zone+'Text')
+                let  Div = document.getElementById('zone'+zone+'Div')
+                Text.innerText="Normal"
+                Div.style.backgroundColor = "green"
+            }
+
+            
+        }
+        image.addEventListener("load", (e) => {
+            
+            
+
+
+        });
+        function isNumeric(str) {
+            if (typeof str != "string") return false // we only process strings!  
+            return !isNaN(str) && // use type coercion to parse the _entirety_ of the string (`parseFloat` alone does not do this)...
+                    !isNaN(parseFloat(str)) // ...and ensure strings of whitespace fail
+        }
+
+        const options = {
+            // Clean session
+            clean: true,
+            connectTimeout: 4000,
+            
+        }
+        const url = 'ws://test.mosquitto.org:8080'
+        const client  = mqtt.connect(url, options)
+        
+        console.log(client)
+        client.on('connect', function () {
+            console.log('Connected')
+            update(5 , false);
+            update(5 , true);
+            
+            // Subscribe to a topic
+            client.subscribe('zone1')
+            client.subscribe('zone2')
+            client.subscribe('zone3')
+            client.subscribe('zone4')
+            client.subscribe('zone5')
+            client.subscribe('zone6')
+            client.subscribe('reset')
+        })
+
+        // Receive messages
+        client.on('message', function (topic, message) {
+            if (topic == 'reset'){
+                reset()
+            }
+            else{
+                
+            // message is Buffer
+            t= Number(topic.charAt(topic.length-1))
+            good = message.toString() == 1
+            console.log(t, good)
+            
+            update(t, good)
+            }
+            
+        })
+
+    </script>
+    
+        
+        
+    
+</html>
+

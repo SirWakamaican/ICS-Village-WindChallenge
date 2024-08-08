@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html>
+    <body id="body" style="height: 100%; margin: 0px">
+        
+            <canvas id="canvas" width= "2232" height= "1684" style="height: 100vh;"></canvas>
+            <img id="map" src="map.png" style="display: none;" />
+            <div id = "side" style = "background-color: lightgrey; float: right; height: 100vh;">
+                <img src="nrel-logo-web.svg" style="min-width: auto;">
+
+                <div style="display: flex; justify-content: space-around;">
+                    <p>
+                        Zone 1
+                    </p>
+                    <div id="zone1Div" style="background-color: red; width: 150px; display: flex; justify-content: center;">
+                        <p id="zone1Text">
+                            Normal
+                        </p>
+                    </div>
+                    
+                </div>
+                <div style="display: flex; justify-content: space-around;">
+                    <p>
+                        Zone 2
+                    </p>
+                    <div id="zone2Div" style="background-color: red; width: 150px; display: flex; justify-content: center;">
+                        <p id="zone2Text">
+                            Normal
+                        </p>
+                    </div>
+                    
+                </div>
+                <div style="display: flex; justify-content: space-around;">
+                    <p>
+                        Zone 3
+                    </p>
+                    <div id="zone3Div" style="background-color: red; width: 150px; display: flex; justify-content: center;">
+                        <p id="zone3Text">
+                            Normal
+                        </p>
+                    </div>
+                    
+                </div>
+                <div style="display: flex; justify-content: space-around;">
+                    <p>
+                        Zone 4
+                    </p>
+                    <div id="zone4Div" style="background-color: red; width: 150px; display: flex; justify-content: center;">
+                        <p id="zone4Text">
+                            Normal
+                        </p>
+                    </div>
+                    
+                </div>
+                <div style="display: flex; justify-content: space-around;">
+                    <p>
+                        Zone 5
+                    </p>
+                    <div id="zone5Div" style="background-color: red; width: 150px; display: flex; justify-content: center;">
+                        <p id="zone5Text">
+                            Normal
+                        </p>
+                    </div>
+                    
+                </div>
+                
+            </div>
+            
+                
+            
+            <!--
+            <div style="width: 100%; display: flex;">
+                <div style = "flex-shrink: 1; background-color: #EBEBEB; min-width: 0;">
+                <canvas id="canvas" width= "1116" height= "842" style="flex: 1; min-width: 0; max-height: 100vh;">
+                    <div style="display:none;">
+                        <img id="map" src="map.png" />
+                      </div>
+                
+
+            </div>
+            <div style = "min-width: 300px; background-color: lightgrey; flex-grow: 1; display: flex; flex-direction: column;row-gap: 20px;">
+                <img src="nrel-logo-web.svg" style="min-width: auto;">
+
+                <div style="display: flex; justify-content: space-around;">
+                    <p>
+                        Zone 1
+                    </p>
+                    <div style="background-color: green; width: 150px; display: flex; justify-content: center;">
+                        <p id="zone1Text">
+                            Normal
+                        </p>
+                    </div>
+                    
+                </div>
+                <div style="display: flex; justify-content: space-around;">
+                    <p>
+                        Zone 2
+                    </p>
+                    <div style="background-color: green; width: 150px; display: flex; justify-content: center;">
+                        <p id="zone2Text">
+                            Normal
+                        </p>
+                    </div>
+                    
+                </div>
+                <div style="display: flex; justify-content: space-around;">
+                    <p>
+                        Zone 3
+                    </p>
+                    <div style="background-color: green; width: 150px; display: flex; justify-content: center;">
+                        <p id="zone3Text">
+                            Normal
+                        </p>
+                    </div>
+                    
+                </div>
+                <div style="display: flex; justify-content: space-around;">
+                    <p>
+                        Zone 4
+                    </p>
+                    <div style="background-color: red; width: 150px; display: flex; justify-content: center;">
+                        <p id="zone4Text">
+                            Down
+                        </p>
+                    </div>
+                    
+                </div>
+                <div style="display: flex; justify-content: space-around;">
+                    <p>
+                        Zone 5
+                    </p>
+                    <div style="background-color: green; width: 150px; display: flex; justify-content: center;">
+                        <p id="zone5Text">
+                            Normal
+                        </p>
+                    </div>
+                    
+                </div>
+                <div style="display: flex; justify-content: space-around;">
+                    <p>
+                        Zone 6
+                    </p>
+                    <div style="background-color: green; width: 150px; display: flex; justify-content: center;">
+                        <p id="zone6Text">
+                            Normal
+                        </p>
+                    </div>
+                    
+                </div>
+            </div> -->
+        
+    </body>
+    
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        window.onresize = resize;
+        
+
+        
+        const canvas = document.getElementById("canvas");
+        const ctx = canvas.getContext("2d");
+        const image = document.getElementById("map");
+        const side = document.getElementById("side");
+        const body = document.getElementById("body");
+        const zone1Text = document.getElementById('zone1Text')
+        const zone1Div = document.getElementById('zone1Div')
+        const zone2Text = document.getElementById('zone2Text')
+        const zone2Div = document.getElementById('zone2Div')
+
+        const zone3Text = document.getElementById('zone3Text')
+        const zone3Div = document.getElementById('zone3Div')
+
+        const zone4Text = document.getElementById('zone4Text')
+        const zone4Div = document.getElementById('zone4Div')
+
+        const zone5Text = document.getElementById('zone5Text')
+        const zone5Div = document.getElementById('zone5Div')
+
+        const zone6Text = document.getElementById('zone6Text')
+        const zone6Div = document.getElementById('zone6Div')
+
+
+        
+        function resize(){
+            side.style.width = (body.clientWidth - canvas.clientWidth)-1 + "px"
+
+        }
+        resize()
+        ctx.rect(20, 20, 150, 100);
+        ctx.fillStyle = "red";
+        textLocation=[[335,430],[1052,302],[1894,834],[490,1250],[1190,937],[1386,1419]]
+        shapes=[
+            [
+                [0,0],
+                [502,0],
+                [1019,699],
+                [1093,713],
+                [1072,799],
+                [0,799],
+                [0,0]
+
+            ],
+            [
+                [502,0],
+                [1019,699],
+                [1093,713],
+                [1942,0],
+                [502,0],
+
+            ],
+            [
+                [1942,0],
+                [1093,713],
+                [1245,780],
+                [2077,1684],
+                [2232,1684],
+                [2232,0],
+                [1942,0]
+
+
+            ],
+            [
+                [0,799],
+                [1072,799],
+                [995,915],
+                [995,1684],
+                [0,1684],
+                [0,799],
+
+
+
+            ],
+            [   
+                [995,1066],
+                [995,915],
+                [1072,799],
+                //[1072,780],
+                [1093,713],
+                [1245,780],
+                
+                    [1519,1066],
+                [2077,1684],
+                [995,1684],
+                    [995,1066],
+               
+                
+                
+
+
+            ],
+            [
+                [995,1684],
+                    [995,1066],
+                    [1519,1066],
+                [2077,1684],
+                [995,1684],
+            ],
+
+
+            
+                
+        ]
+        /*
+                [995,1684]
+                [995,915],
+                [1072,799],
+                [1093,713],
+                [1245,780],
+                [2077,1684],
+                [995,1684]
+
+        */
+
+        function drawImage(ctx, good,z){
+            zone= z-1
+            ctx.beginPath();
+            if(good){
+                ctx.fillStyle = "red";
+            }
+            else{
+                ctx.fillStyle = "green";
+            }
+            ctx.globalAlpha = 0.4
+
+            
+
+
+            ctx.moveTo(shapes[zone][0][0],shapes[zone][0][1])
+            shapes[zone].forEach( pix =>{
+                ctx.lineTo(pix[0], pix[1]);
+            });
+            ctx.fill();
+            ctx.globalAlpha = 0.6;
+            ctx.textAlign = "center";
+            ctx.font = "120px Arial";
+            ctx.fillText(z+"", textLocation[zone][0], textLocation[zone][1]);
+            ctx.globalAlpha = 1;
+
+        }
+        //ctx.fill()
+        //ctx.drawImage(image, 0, 0);
+        
+        console.log("hit")
+        zones=[1,1,1,1,1]
+        function update(zone,good){
+            if (!isNumeric){
+                return
+            }
+            if(1>zone || zone>5){
+                return
+            }
+            if(zones[zone-1]==good){
+                return 
+            }
+            
+            zones[zone-1]=good
+            updateBoard();
+            ctx.drawImage(image, 0, 0);
+            for (let i = 1; i < 6; i++) {
+                drawImage(ctx, zones[i-1],i)
+            }
+
+
+        }
+        function updateBoard(){
+            zones.forEach((good, z)=>{
+            let zone = z+1;
+                if (!isNumeric){
+                return
+            }
+            if(1>zone || zone>6){
+                return
+            }
+            const Text = document.getElementById('zone'+zone+'Text')
+            const Div = document.getElementById('zone'+zone+'Div')
+            if (good){
+                Text.innerText="Normal"
+                Div.style.backgroundColor = "red"
+            }
+            else{
+                Text.innerText="Down"
+                Div.style.backgroundColor = "green"
+            }
+
+            })
+            
+        }
+        image.addEventListener("load", (e) => {
+            
+            
+
+
+        });
+        function isNumeric(str) {
+            if (typeof str != "string") return false // we only process strings!  
+            return !isNaN(str) && // use type coercion to parse the _entirety_ of the string (`parseFloat` alone does not do this)...
+                    !isNaN(parseFloat(str)) // ...and ensure strings of whitespace fail
+        }
+        //const key = '-----BEGIN RSA PRIVATE KEY----- Proc-Type: 4,ENCRYPTED DEK-Info: DES-EDE3-CBC,3B65F8C770BA091CVm3S3cneJu8fT3g874cAgq37iGft9/LD5x4J3Cq8zpl2KK8Vt20Pb9BI1R999+Fs CG2Erqst4yeJfMl11xQ5mBBr5CM6WvRaqBLpv61C98ro0V2In+Tq6Z7/UBeJF7ve OXw6o32nvSNbvlJIjVHscgL14GVtyuqUcN9/v73fj9KW936dxoajLujfhcr9S1tB CiyXhgzLn/vrzJPyf1ZOTLADBhn4TYHgeXqLvllJTr+WiUIMRuAEOhZmqkNVczVn WdNIv5dP1b8wFH7KGT5BbtGz6bQz+ka1QPZp1r5+F7hfPn7dMJHZbWcsvN7gVYzv uaRcUQkSVt83+3KcFg1MJwHLTuumW14Yi5GcrN04RJaMhP/rV0JTxiCjMXHZFKgC fkWkd6yeIdMaeZWZt2JRXQtEtznnNEloCA10aL0lqGCBsvRNkF8MW6bjhCBq0dAX SCRC94Z3cMtv1YdJhCSzz6kRcfXe+LQQdmyhYBVsr9lkPtLXrTxCxAiyeChOe2g8 j1Gbm4wwBinPDshyV5D+BF903EfzkW7S8nYOtlXTEpiNEsOH6PWcxFr1gtUMwUeZ HCsbYY6rGzBLOIDIQhlT2QNMt8iauuWxrNC9iIbDYHV+6FudLUjrlapnPf/tv0AB +hB5kjyRI9Q3iRq0URks6Q19ct0nkvu6oFHwifunL2Ynv8R+oS/u+4VEXPUj5DIC Bs3QNy65+/d2VTRFj0hhpTC0qbujtGIl9VK86Dtajr6gAFTdo9/1TWv2Yd/kyig7 TFPHZqX2CfVRQgo/ACzBtUryhCYTZ7rU5b27mZwgsyRRtABsoMK0/L6PTOgfLUBc ztZitWDTVIEQG3dcxPqAEfX1YWyWxBRKD2EvK0A4Cgxt9R45MEwuM3xpB37PmnYn WXknBBj8EchWqXE1qEe6yqjCaw6sy1KRtmD+GPXnJ5ZFc9HjMbrkZZXguEMGtDMx Ks9E3OH8+g/V6VcMB9d0dM9ssqv997puXq1K2NKi7ltVBVTbZ5uvZSi9eDbp9ihp VnT32fmzJtRVeXmUBdS5ttU9WBuuGS7PAylOsK780VBG57xNQrlA/vV4a0OL7auS zC0VuPcua5yqGjRWpaDQ05+WTlkW2oh/h09BYuvjt3WldfmkZ5J5383OV2MACrm8 kiUF9L0KnFCEucvF5a06TyS0rlcynt3BMdiJ+LVbSSirsExBWmOkRzhcdW+Xy8ys Si+Eel7ylnHGc+Q/7CsrI2h9kHQpHs0htheVM+GPcOvBlYx60mT2mg/SJXOehekl XaZaSBNC1Xfgvn7u8c2cDukQLkU7uAPTTrrYtGwGVCJIt0aCD7Rwo4iMcNv9kGJW WKOIOMxWpBZ5oZjA11M3ZqDCgZCadAYbEWjRwa2z39LNrZXnco9nYw6cah02enmY Hdmkh1xBy3Td5Be6GjZd63tWhTUadp03SoTAEYRl2lJA8F0fTtUPWSKzPo8jmPrR Z0147B0/pL2+4JkyVvti2+sa4gumC7CVzPn+V9FELRJzuOEZnK4aeq7L7r4/yXut dojtu8QGcQEa2GyaE0k4iSn0q3g+MW2gNO64I9vgJfvvCO8DbCIlogj58ZubHGow -----END RSA PRIVATE KEY----- '
+        //const crt = '-----BEGIN CERTIFICATE----- MIIEDTCCAvWgAwIBAgJAK+nOdyr4sREMA0GCSqGSIb3DQEBCwUAMGcxCzAJBgNV BAYTAlVTMQswCQYDVQQIDAJDTzELMAkGA1UEBwwCTkExDTALBgNVBAoMBE5SRUwx DTALBgNVBAsMBE5SRUwxDTALBgNVBAMMBE5SRUwxETAPBgkqhkiG9w0BCQEWAk5B MB4XDTIzMDgwNjE1MDQ0NFoXDTMzMDgwMzE1MDQ0NFowZzELMAkGA1UEBhMCQ08x CzAJBgNVBAgMAkNPMQswCQYDVQQHDAJOQTENMAsGA1UECgwETlJFTDENMAsGA1UE CwwETlJFTDENMAsGA1UEAwwETlJFTDERMA8GCSqGSIb3DQEJARYCTkEwggEiMA0G CSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQCgmMsbRIwRW8nby58UgJ0XUsvAA4ki UpUYLuS7W4tF+N6W3EquS3VAE2WZKNmTEaeeSF8bCxQyxrAzcF1EK5Bjft/xsx5+ 5UVwvBwPvosDm5lFM9uXMEON3pxKJ0/7TYFZ+iaGOaNSZrdNJQ3RX/y2KAzFYHBR Rym/j+XTpGcymsdsxEAHSlOlJE5P1VtY39Z6bm/FYSs/u66alDLBwPxHld4V+y1s +W4Z8fU3S1Waqe4mCV363AFjAjKcS/IdFqRkMEwKd5KALXUwpbl8xr59OWL45jLx O3NzdQOi+sUvrzz6HmvEZCgcwzx2PKRIpe5X5vl4p2/x3yQKbIEkiRo7AgMBAAGj gbswgbgwgYEGA1UdIwR6MHiha6RpMGcxCzAJBgNVBAYTAlVTMQswCQYDVQQIDAJD TzELMAkGA1UEBwwCTkExDTALBgNVBAoMBE5SRUwxDTALBgNVBAsMBE5SRUwxDTAL BgNVBAMMBE5SRUwxETAPBgkqhkiG9w0BCQEWAk5BggkA5wC90pQi0fQwCQYDVR0T BAIwADALBgNVHQ8EBAMCBPAwGgYDVR0RBBMwEYIJbG9jYWxob3N0hwR/AAABMA0G CSqGSIb3DQEBCwUAA4IBAQBrA5I1a6nSnefSf0Ds9R30IsnstaPchdL4O7Ll1IuD O9uJsn1U5Dy8bLkbzKGbraKbQS+aEn93ZbOLUpPoo+r37bmqi0iYzt6ozTCXN2F2 aoTaiTAKE91Er/o9Ur7OyDUZJVLek7qYyCXiMBDH0ePxWRVMRiqUeicYj90NbUPH /5AtPvWHtmCzW1+snaWa1qmQF6sqVGZ9LIHgm9mjjTSlXEeSGMZVdp8kPtTHcvQZ tKlby2OkUuV2dmNUdROUDtafq/0RE+82hRT0Y+yA2S2h9eSlfRmdP69nBuMwStg7 LbUW/zkYK4udxskiqxV5MKISuLDPOvka0EgWQhDKO9DR -----END CERTIFICATE-----'
+        //const options = {
+        //    // Clean session
+        //    clean: true,
+        //    //connectTimeout: 4000,
+        //    host: "127.0.0.1",
+        //    port: 8443,
+        //    protocol: "mqtts",
+        //    keepalive: 10,
+        //    protocolId: "MQTT",
+        //    
+        //    clean: true,
+        //    reconnectPeriod: 2000,
+        //    connectTimeout: 2000,
+        //    key: key,
+        //    cert: crt,
+        //    rejectUnauthorized: false,
+//
+        //    
+        //}
+        //const url = 'ws://test.mosquitto.org:8080'
+        //const client  = mqtt.connect( options)
+        //
+        //console.log(client)
+        //client.on('connect', function () {
+        //    console.log('Connected')
+        //    update(5 , false);
+        //    update(5 , true);
+        //    
+        //    // Subscribe to a topic
+        //    client.subscribe('zone1')
+        //    client.subscribe('zone2')
+        //    client.subscribe('zone3')
+        //    client.subscribe('zone4')
+        //    client.subscribe('zone5')
+        //    client.subscribe('zone6')
+        //})
+
+        // Receive messages
+        
+        const socket = io();
+
+        // Emit a custom event to the server
+        socket.emit('my event', { msg: 'Hello from the client!' });
+
+        // Listen for a response from the server
+        socket.on('my response', (data) => {
+            console.log('Connected')
+            ctx.drawImage(image, 0, 0);
+            for (let i = 1; i < 6; i++) {
+                drawImage(ctx, zones[i-1],i)
+            }
+            console.log('Received response:', data);
+        });
+
+
+        // Example of handling a disconnection
+        socket.on('disconnect', () => {
+            console.log('Disconnected from the server');
+        });
+        socket.on('mqttMessage', function (data) {
+            // message is Buffer
+            console.log("got message", data)
+            t= Number(data.topic.charAt(data.topic.length-1))
+            good = data.message.toString() == 1
+            console.log(t, good)
+            
+            update(t, good)
+            
+        })
+
+    </script>
+    
+        
+        
+    
+</html>
+
