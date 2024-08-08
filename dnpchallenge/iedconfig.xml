@@ -1,0 +1,60 @@
+<?xml version="1.0"?>
+<ot-sim>
+  <message-bus>
+    <pull-endpoint>tcp://127.0.0.1:9012</pull-endpoint>
+    <pub-endpoint>tcp://127.0.0.1:3456</pub-endpoint>
+  </message-bus>
+  <cpu>
+    <module name="backplane">ot-sim-message-bus {{config_file}}</module>
+    <module name="dnp3">ot-sim-dnp3-module {{config_file}}</module>
+    <module name="gpio">ot-sim-rpi-gpio-module {{config_file}}</module>
+    <module name="logic">ot-sim-logic-module {{config_file}}</module>
+  </cpu>
+  <dnp3 name="dnp3-outstation" mode="server">
+    <endpoint>0.0.0.0:20000</endpoint>
+    <cold-restart-delay>15</cold-restart-delay>
+    <outstation name="outstation-ied">
+        <local-address>10</local-address>
+        <remote-address>1</remote-address>
+        <warm-restart-delay>5</warm-restart-delay>
+        <input type="binary">
+            <address>0</address>
+            <tag>turbine.status</tag>
+            <sgvar>Group1Var1</sgvar>
+            <egvar>Group2Var1</egvar>
+            <class>Class1</class>
+        </input>
+        <output type="binary">
+            <address>10</address>
+            <tag>turbine.control</tag>
+            <sgvar>Group10Var2</sgvar>
+            <egvar>Group11Var2</egvar>
+            <class>Class1</class>
+            <sbo>false</sbo>
+        </output>
+    </outstation>
+  </dnp3>
+  <logic>
+    <period>1s</period>
+    <process-updates>true</process-updates>
+    <program>
+      <![CDATA[
+      turbine = control == 1 and estop == 0
+      status = turbine
+      # hack to get estop tag to show up in Telnet module
+      estop = estop
+      ]]>
+    </program>
+    <variables>
+      <turbine>0</turbine>
+      <status tag="turbine.status">1</status>
+      <control tag="turbine.control">1</control>
+      <estop>0</estop>
+    </variables>
+  </logic>
+  <rpi-gpio name="gpio" mode="board">
+    <output pin="18">
+      <tag>turbine</tag>
+    </output>
+  </rpi-gpio>
+</ot-sim>

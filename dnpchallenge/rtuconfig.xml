@@ -1,0 +1,67 @@
+<?xml version="1.0"?>
+<ot-sim>
+  <message-bus>
+    <pull-endpoint>tcp://127.0.0.1:1234</pull-endpoint>
+    <pub-endpoint>tcp://127.0.0.1:5678</pub-endpoint>
+  </message-bus>
+  <cpu>
+    <module name="backplane">ot-sim-message-bus {{config_file}}</module>
+    <module name="dnp3">ot-sim-dnp3-module {{config_file}}</module>
+    <module name="gpio">ot-sim-rpi-gpio-module {{config_file}}</module>
+    <module name="logic">ot-sim-logic-module {{config_file}}</module>
+    <module name="telnet">ot-sim-telnet-module {{config_file}}</module>
+  </cpu>
+  <dnp3 name="dnp3-outstation" mode="client">
+    <endpoint>ied:20000</endpoint>
+    <master name="client-ied">
+        <local-address>1</local-address>
+        <remote-address>10</remote-address>
+        <input type="binary">
+            <address>0</address>
+            <tag>turbine.status</tag>
+            <sgvar>Group1Var1</sgvar>
+            <egvar>Group2Var1</egvar>
+            <class>Class1</class>
+        </input>
+        <output type="binary">
+            <address>10</address>
+            <tag>turbine.control</tag>
+            <sgvar>Group10Var2</sgvar>
+            <egvar>Group11Var2</egvar>
+            <class>Class1</class>
+            <sbo>false</sbo>
+        </output>
+    </master>
+  </dnp3>
+  <logic>
+    <period>1s</period>
+    <program>
+      <![CDATA[
+      estopactive = led == true
+      estopactive = estopactive || switch == 1
+      counter = estopactive ? (counter + 1) : 0
+      estopactive = counter > 0 && counter < 60
+      led = estopactive
+      control = estopactive ? 0 : 1
+      ]]>
+    </program>
+    <variables>
+      <led>0</led>
+      <switch>0</switch>
+      <control tag="turbine.control">1</control>
+    </variables>
+  </logic>
+  <rpi-gpio name="gpio" mode="board">
+    <period>1</period>
+    <input pin="16">
+      <tag>switch</tag>
+    </input>
+    <output pin="15">
+      <tag>led</tag>
+    </output>
+  </rpi-gpio>
+  <telnet>
+    <endpoint>:23</endpoint>
+    <banner>default</banner>
+  </telnet>
+</ot-sim>
