@@ -36,10 +36,13 @@ import asyncio
 import logging
 import sys
 import time
+import paho.mqtt.client as mqtt
+import RPi.GPIO as GPIO
 
 try:
     import helper
-except ImportError:
+except Exception as e:
+    print(e)
     print("*** ERROR --> THIS EXAMPLE needs the example directory, please see \n\
           https://pymodbus.readthedocs.io/en/latest/source/examples.html\n\
           for more information.")
@@ -59,6 +62,9 @@ from pymodbus.server import (
     StartAsyncTlsServer,
     StartAsyncUdpServer,
 )
+GPIO.setmode(GPIO.BCM)  # Use BCM pin numbering
+GPIO.setup(17, GPIO.OUT)
+
 
 
 _logger = logging.getLogger(__file__)
@@ -223,14 +229,40 @@ async def shutdown_coil(args):
         print("Reading value")
         shutdown = args.context[0].getValues(2,1,count=1)[0]
         print("Reading shutdown " + shutdown)
+        if shutdown == 0:
+            changeON(0)
 
-    return True
+        
+
+def changeON(on):
+    CA_CERT = 'mqtt-certs/ca-cert.pem'  # Path to your CA certificate
+    CLIENT_CERT = 'mqtt-certs/client-cert.pem'  # Path to your client certificate (optional)
+    CLIENT_KEY = 'mqtt-certs/client-key.pem' 
+    client = mqtt.Client()
+    client.tls_set(ca_certs=CA_CERT, certfile=CLIENT_CERT, keyfile=CLIENT_KEY)
+    client.tls_insecure_set(True)
+    client.connect("0.0.0.0", 1883, 60)
+    client.loop_start()
+    client.publish("zone1", on)
+    client.loop_stop()
+    if on == 0:
+        GPIO.output(12,GPIO.LOW)
+        _logger.info("gpio off")
+    else: 
+        GPIO.output(12,GPIO.HIGH)
+        _logger.info("gpio on")
+
+
+
+    
 
 
 
 async def async_helper():
     """Combine setup and run."""
     _logger.info("Starting...")
+    changeON(1)
+    
     run_args = setup_server(description="Run asynchronous server.")
     print("monitoring the coil")
     await run_async_server(run_args)
