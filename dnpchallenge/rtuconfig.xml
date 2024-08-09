@@ -5,9 +5,9 @@
     <pub-endpoint>tcp://127.0.0.1:5678</pub-endpoint>
   </message-bus>
   <cpu>
+    <api-endpoint>0.0.0.0:9101</api-endpoint>
     <module name="backplane">ot-sim-message-bus {{config_file}}</module>
     <module name="dnp3">ot-sim-dnp3-module {{config_file}}</module>
-    <module name="gpio">ot-sim-rpi-gpio-module {{config_file}}</module>
     <module name="logic">ot-sim-logic-module {{config_file}}</module>
     <module name="telnet">ot-sim-telnet-module {{config_file}}</module>
   </cpu>

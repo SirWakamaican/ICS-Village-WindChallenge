@@ -6,10 +6,14 @@ services:
       - ./rtuconfig.xml:/etc/ot-sim/config.xml
       - /dev/gpiomem:/dev/gpiomem
     ports:
-      - "127.0.0.1:23:23/tcp"
+      - "2323:23"
   ied:
     image: ghcr.io/patsec/ot-sim/ot-sim:main
     privileged: true
     volumes:
       - ./iedconfig.xml:/etc/ot-sim/config.xml
       - /dev/gpiomem:/dev/gpiomem
+  vizhelper:
+    image: python:3.13-rc
+
+  

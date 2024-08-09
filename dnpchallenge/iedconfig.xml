@@ -5,9 +5,9 @@
     <pub-endpoint>tcp://127.0.0.1:3456</pub-endpoint>
   </message-bus>
   <cpu>
+    <api-endpoint>0.0.0.0:9102</api-endpoint>
     <module name="backplane">ot-sim-message-bus {{config_file}}</module>
     <module name="dnp3">ot-sim-dnp3-module {{config_file}}</module>
-    <module name="gpio">ot-sim-rpi-gpio-module {{config_file}}</module>
     <module name="logic">ot-sim-logic-module {{config_file}}</module>
   </cpu>
   <dnp3 name="dnp3-outstation" mode="server">
@@ -39,14 +39,16 @@
     <process-updates>true</process-updates>
     <program>
       <![CDATA[
-      turbine = control == 1 and estop == 0
-      status = turbine
+      notturbine = control == 1 and estop == 0
+      status = notturbine
+      turbine = not notturbine
       # hack to get estop tag to show up in Telnet module
       estop = estop
       ]]>
     </program>
     <variables>
-      <turbine>0</turbine>
+      <notturbine>0</notturbine>
+      <turbine>1</turbine>
       <status tag="turbine.status">1</status>
       <control tag="turbine.control">1</control>
       <estop>0</estop>
