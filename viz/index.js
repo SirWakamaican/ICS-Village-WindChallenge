@@ -1,6 +1,4 @@
 const fs = require('fs');
-const key = fs.readFileSync('./localhost/localhost.decrypted.key');
-const cert = fs.readFileSync('./localhost/localhost.crt');
 
 const express = require('express');
 const https = require('https');
