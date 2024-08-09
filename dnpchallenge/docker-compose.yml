@@ -13,6 +13,8 @@ services:
     volumes:
       - ./iedconfig.xml:/etc/ot-sim/config.xml
       - /dev/gpiomem:/dev/gpiomem
+    ports:
+      - "20000:20000"
   vizhelper:
     image: python:3.13-rc
 
