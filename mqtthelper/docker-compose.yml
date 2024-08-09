@@ -1,0 +1,9 @@
+version: "3.5"
+services:
+  
+    
+  mqtt:
+    image: jtsmart/mqtthelper
+    links:
+      - mqtt
+      # need all other containers?
