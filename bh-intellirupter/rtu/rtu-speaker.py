@@ -20,12 +20,12 @@ signal.signal(signal.SIGINT, signal_handler)
 
 # Create a TCP socket
 client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-client_socket.connect(('192.168.1.10', 8888))
+client_socket.connect(('192.168.2.100', 8888))
 listener_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-listener_socket.connect(('192.168.1.10', 8889))
+listener_socket.connect(('192.168.2.100', 8889))
 
 # Set up modbus client
-plc_client = ModbusTcpClient(host='192.168.1.10', port=502, auto_open=True)
+plc_client = ModbusTcpClient(host='192.168.2.100', port=5000, auto_open=True)
 plc_client.connect()
 
 # Global params

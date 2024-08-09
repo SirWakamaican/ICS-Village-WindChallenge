@@ -6,16 +6,13 @@ services:
       - "3000:3000"
     links:
       - mqtt
-    
   mqtt:
     image: eclipse-mosquitto
     ports:
       - "1883:1883"
       - "8443:8443"
-    
-    
     volumes:
-      - $PWD/mosquitto.conf:/mosquitto/config/mosquitto.conf
-      - $PWD/mqtt-certs/server-cert.pem:/server.pem
-      - $PWD/mqtt-certs/server-key.pem:/server.key
-      - $PWD/mqtt-certs/ca-cert.pem:/ca.pem
+      - ./mosquitto.conf:/mosquitto/config/mosquitto.conf
+      - ./mqtt-certs/server-cert.pem:/server.pem
+      - .//mqtt-certs/server-key.pem:/server.key
+      - ./mqtt-certs/ca-cert.pem:/ca.pem

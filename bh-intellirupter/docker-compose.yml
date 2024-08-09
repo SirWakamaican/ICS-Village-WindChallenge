@@ -11,8 +11,8 @@ services:
     build: ./OpenPLC_v3/
     image: plc
     ports:
-      - 502:502
-      - 8080:8080
+      - 5000:502
+      - 9000:8080
     container_name: plc-container
   rtu:
     depends_on:

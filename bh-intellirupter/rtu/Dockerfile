@@ -4,8 +4,8 @@ WORKDIR /workdir
 RUN ln -sf /bin/bash /bin/sh
 RUN apt update
 RUN apt upgrade -y
-RUN apt install pip systemctl python3-venv -y
-RUN apt install python3-numpy -y
+RUN apt-get install pip systemctl python3-venv -y
+RUN apt-get install python3-numpy -y
 RUN python3 -m venv .venv --system-site-packages
 RUN source .venv/bin/activate
 RUN pip install pymodbus
