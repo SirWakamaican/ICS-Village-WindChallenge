@@ -1,0 +1,75 @@
+version: '2'
+
+
+services:
+  start:
+    build: .
+    privileged: true
+    networks:
+      - ctf1
+    ports:
+      - "8080:8080"
+      - "502:502"
+  start_stop:
+    build: .
+    privileged: true
+    networks:
+      - ctf2
+    ports:
+      - "8081:8080"
+      - "503:502"
+  plc:
+    build: ./OpenPLC_v3/
+    image: plc
+    ports:
+      - 502:502
+    container_name: plc-container
+  rtu:
+    depends_on:
+      - plc
+    build: ./rtu/
+    image: rtu
+    restart: always
+    ports:
+      - 8888:8888
+      - 8889:8889
+    container_name: rtu-container
+  rtu1:
+    image: ghcr.io/patsec/ot-sim/ot-sim:main
+    privileged: true
+    volumes:
+      - ./rtuconfig.xml:/etc/ot-sim/config.xml
+      - /dev/gpiomem:/dev/gpiomem
+    ports:
+      - "127.0.0.1:23:23/tcp"
+  ied:
+    image: ghcr.io/patsec/ot-sim/ot-sim:main
+    privileged: true
+    volumes:
+      - ./iedconfig.xml:/etc/ot-sim/config.xml
+      - /dev/gpiomem:/dev/gpiomem
+  master:
+    build: ./master
+    command: python3 master.py
+    networks:
+      my_network:
+        ipv4_address: 172.18.0.2
+  slave:
+    build: ./slave
+    command: python3 slave.py -l debug
+    networks:
+      my_network:
+        ipv4_address: 172.18.0.3
+
+networks:
+  ctf1:
+    driver: bridge
+  ctf2:
+    driver: bridge
+  my_network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.18.0.0/16
+  proxiable:
+    name: proxiable
