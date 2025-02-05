@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>Defcon Zones</title>
+  <!-- If you want to handle responsiveness, can also add meta viewport, etc. -->
+</head>
+<body id="body" style="height: 100%; margin: 0;">
+  <canvas id="canvas" width="2232" height="1684" style="height: 100vh;"></canvas>
+  <img id="map" src="map.png" style="display: none;" />
+
+  <div id="side" style="background-color: lightgrey; float: right; height: 100vh;">
+    <img src="nrel-logo-web.svg" style="min-width: auto;" />
+    <div style="display: flex; justify-content: space-around;">
+      <p>Zone 1</p>
+      <div id="zone1Div" style="background-color: red; width: 150px; display: flex; justify-content: center;">
+        <p id="zone1Text">Normal</p>
+      </div>
+    </div>
+    <div style="display: flex; justify-content: space-around;">
+      <p>Zone 2</p>
+      <div id="zone2Div" style="background-color: red; width: 150px; display: flex; justify-content: center;">
+        <p id="zone2Text">Normal</p>
+      </div>
+    </div>
+    <div style="display: flex; justify-content: space-around;">
+      <p>Zone 3</p>
+      <div id="zone3Div" style="background-color: red; width: 150px; display: flex; justify-content: center;">
+        <p id="zone3Text">Normal</p>
+      </div>
+    </div>
+    <div style="display: flex; justify-content: space-around;">
+      <p>Zone 4</p>
+      <div id="zone4Div" style="background-color: red; width: 150px; display: flex; justify-content: center;">
+        <p id="zone4Text">Normal</p>
+      </div>
+    </div>
+    <div style="display: flex; justify-content: space-around;">
+      <p>Zone 5</p>
+      <div id="zone5Div" style="background-color: red; width: 150px; display: flex; justify-content: center;">
+        <p id="zone5Text">Normal</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Socket.IO client library -->
+  <script src="/socket.io/socket.io.js"></script>
+  <!-- Your main logic in an external file -->
+  <script src="main.js" defer></script>
+</body>
+</html>

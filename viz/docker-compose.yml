@@ -1,11 +1,13 @@
 version: "3.5"
+
 services:
   https:
-    image: jtsmart/https
+    build:
+      context: .
+      dockerfile: Dockerfile
     ports:
       - "3000:3000"
-    links:
-      - mqtt
+
   mqtt:
     image: eclipse-mosquitto
     ports:
@@ -13,6 +15,6 @@ services:
       - "8443:8443"
     volumes:
       - ./mosquitto.conf:/mosquitto/config/mosquitto.conf
-      - ./mqtt-certs/server-cert.pem:/server.pem
-      - .//mqtt-certs/server-key.pem:/server.key
-      - ./mqtt-certs/ca-cert.pem:/ca.pem
+      - ./mqtt-certs/server.pem:/mosquitto/config/server.pem
+      - ./mqtt-certs/server.key:/mosquitto/config/server.key
+      - ./mqtt-certs/ca.pem:/mosquitto/config/ca.pem
