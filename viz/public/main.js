@@ -1,3 +1,6 @@
+/***************************************************************
+ * 1) LAYOUT SETUP AND ZONE TRACKING
+ ***************************************************************/
 function resize() {
     const body = document.getElementById("body");
     const canvas = document.getElementById("canvas");
@@ -11,61 +14,97 @@ function resize() {
   const ctx = canvas.getContext("2d");
   const image = document.getElementById("map");
   
-  // Zone elements
-  const zone1Text = document.getElementById('zone1Text');
-  const zone1Div = document.getElementById('zone1Div');
-  const zone2Text = document.getElementById('zone2Text');
-  const zone2Div = document.getElementById('zone2Div');
-  const zone3Text = document.getElementById('zone3Text');
-  const zone3Div = document.getElementById('zone3Div');
-  const zone4Text = document.getElementById('zone4Text');
-  const zone4Div = document.getElementById('zone4Div');
-  const zone5Text = document.getElementById('zone5Text');
-  const zone5Div = document.getElementById('zone5Div');
+  // We have 16 zones. 1 = Normal, 0 = Down
+  let zones = Array(16).fill(1);
   
-  // Tracks which zones are "good"/"normal" vs "down"
-  let zones = [1, 1, 1, 1, 1]; // 1 = Normal, 0 = Down
+  // We'll store the polygons for each zone, and their text coordinates
+  // shapes[i] = array of points [[x1,y1], [x2,y1], [x2,y2], [x1,y2], [x1,y1]]
+  // textLocation[i] = [centerX, centerY]
+  let shapes = [];
+  let textLocation = [];
   
-  // Coordinates for drawing shapes
-  const textLocation = [[335,430],[1052,302],[1894,834],[490,1250],[1190,937],[1386,1419]];
-  const shapes = [
-    [ [0,0], [502,0], [1019,699], [1093,713], [1072,799], [0,799], [0,0] ],
-    [ [502,0], [1019,699], [1093,713], [1942,0], [502,0] ],
-    [ [1942,0], [1093,713], [1245,780], [2077,1684], [2232,1684], [2232,0], [1942,0] ],
-    [ [0,799], [1072,799], [995,915], [995,1684], [0,1684], [0,799] ],
-    [ [995,1066], [995,915], [1072,799], [1093,713], [1245,780], [1519,1066], [2077,1684], [995,1684], [995,1066] ],
-    [ [995,1684], [995,1066], [1519,1066], [2077,1684], [995,1684] ],
-  ];
+  /**
+   * Dynamically create a 4x4 grid of squares over the canvas.
+   * Each zone is a rectangle. shapes[0] -> zone1, shapes[1] -> zone2, etc.
+   */
+  function initShapesAndTextLocations() {
+    const rows = 4;
+    const cols = 4;
+    const cellWidth = canvas.width / cols;
+    const cellHeight = canvas.height / rows;
   
-  function drawZone(ctx, isNormal, z) {
-    const zoneIndex = z - 1;
+    for (let i = 0; i < 16; i++) {
+      const row = Math.floor(i / cols);
+      const col = i % cols;
+  
+      const x1 = col * cellWidth;
+      const y1 = row * cellHeight;
+      const x2 = x1 + cellWidth;
+      const y2 = y1 + cellHeight;
+  
+      // A simple rectangle: top-left -> top-right -> bottom-right -> bottom-left -> back to top-left
+      shapes[i] = [
+        [x1, y1],
+        [x2, y1],
+        [x2, y2],
+        [x1, y2],
+        [x1, y1]
+      ];
+  
+      // Center of the cell for the zone label
+      textLocation[i] = [
+        (x1 + x2) / 2,
+        (y1 + y2) / 2
+      ];
+    }
+  }
+  
+  /***************************************************************
+   * 2) DRAWING AND UPDATING ON CANVAS
+   ***************************************************************/
+  
+  /**
+   * Draw a single zone on the canvas
+   * @param {CanvasRenderingContext2D} ctx
+   * @param {boolean} isNormal - true=Normal, false=Down
+   * @param {number} zoneNumber - 1..16
+   */
+  function drawZone(ctx, isNormal, zoneNumber) {
+    const zoneIndex = zoneNumber - 1;
     ctx.beginPath();
-    
-    // Color: normal=red, down=green (per your existing code)
+  
+    // Color: Normal=red, Down=green
     ctx.fillStyle = isNormal ? "red" : "green";
     ctx.globalAlpha = 0.4;
   
-    // Draw polygon
+    // Draw the polygon
+    // shapes[zoneIndex] is the array of points for this zone
     ctx.moveTo(shapes[zoneIndex][0][0], shapes[zoneIndex][0][1]);
-    shapes[zoneIndex].forEach((pix) => {
-      ctx.lineTo(pix[0], pix[1]);
+    shapes[zoneIndex].forEach((pt) => {
+      ctx.lineTo(pt[0], pt[1]);
     });
     ctx.fill();
   
-    // Label the zone number
+    // Label the zone number in the center
     ctx.globalAlpha = 0.6;
     ctx.textAlign = "center";
-    ctx.font = "120px Arial";
-    ctx.fillText(z.toString(), textLocation[zoneIndex][0], textLocation[zoneIndex][1]);
+    ctx.font = "40px Arial"; // Adjust font size to fit squares
+    ctx.fillText(
+      zoneNumber.toString(),
+      textLocation[zoneIndex][0],
+      textLocation[zoneIndex][1]
+    );
     ctx.globalAlpha = 1;
   }
   
+  /**
+   * Update the side panel text/color for each zone
+   */
   function updateBoard() {
-    // For each zone, update the text and background color
     zones.forEach((val, index) => {
       const zoneNum = index + 1;
-      const textElem = document.getElementById('zone' + zoneNum + 'Text');
-      const divElem = document.getElementById('zone' + zoneNum + 'Div');
+      const textElem = document.getElementById(`zone${zoneNum}Text`);
+      const divElem = document.getElementById(`zone${zoneNum}Div`);
       if (!textElem || !divElem) return;
   
       if (val === 1) {
@@ -78,27 +117,37 @@ function resize() {
     });
   }
   
-  // Update one zone by number
+  /**
+   * Called whenever a single zone’s status changes
+   * @param {number} zoneNumber - from 1..16
+   * @param {boolean} isNormal
+   */
   function updateZone(zoneNumber, isNormal) {
-    // Just to be safe, zoneNumber should be 1..5 in your example
-    if (zoneNumber < 1 || zoneNumber > 6) return;
+    // Check zone bounds
+    if (zoneNumber < 1 || zoneNumber > 16) return;
   
+    // 1=Normal, 0=Down
     zones[zoneNumber - 1] = isNormal ? 1 : 0;
     updateBoard();
   
-    // Redraw the map
+    // Redraw entire map
     ctx.drawImage(image, 0, 0);
-    for (let i = 1; i <= 5; i++) {
+    for (let i = 1; i <= 16; i++) {
       drawZone(ctx, zones[i - 1] === 1, i);
     }
   }
   
-  resize();
+  /***************************************************************
+   * 3) INITIAL SETUP AND EVENT HANDLERS
+   ***************************************************************/
   
-  // Wait for the map image to load, then draw it once
+  resize();            // Size the side panel
+  initShapesAndTextLocations(); // Build shapes + text coords for 16 squares
+  
+  // Draw once image is loaded
   image.addEventListener("load", () => {
     ctx.drawImage(image, 0, 0);
-    for (let i = 1; i <= 5; i++) {
+    for (let i = 1; i <= 16; i++) {
       drawZone(ctx, zones[i - 1] === 1, i);
     }
   });
@@ -114,9 +163,8 @@ function resize() {
   // Handle server response
   socket.on('my response', (data) => {
     console.log('Server responded:', data);
-    // Draw the map if not already drawn
     ctx.drawImage(image, 0, 0);
-    for (let i = 1; i <= 5; i++) {
+    for (let i = 1; i <= 16; i++) {
       drawZone(ctx, zones[i - 1] === 1, i);
     }
   });
@@ -130,82 +178,57 @@ function resize() {
     const zoneNum = parseInt(lastChar, 10);
     if (isNaN(zoneNum)) return;
   
-    // Convert the message to a boolean
-    // e.g. if message = "1" => isNormal=true, if "0" => isNormal=false
-    // Step 1: If it's an array, pick subValue = data.message[zoneNum % 4]
-// Step 2: Check subValue's type (boolean/string/number) and call updateZone(zoneNum, boolean)
-
-// 1) Possibly parse data.message as JSON if it's a string
-let value = data.message;
-if (typeof value === 'string') {
-  try {
-    const parsed = JSON.parse(value);  // Try to parse JSON
-    value = parsed;                    // If successful, replace value
-  } catch (err) {
-    // If parse fails, we leave 'value' as the original string
-    // We'll still do the string logic below.
-  }
-}
-
-// 2) Now handle arrays, booleans, strings, numbers, etc.
-if (Array.isArray(value)) {
-  // If it's an array, pick the element based on zoneNum % 4
-  const subValue = value[zoneNum % 4];
-
-  // We'll process subValue as if it were "data.message" using a helper function
-  processValue(zoneNum, subValue);
-
-} else {
-  // It's not an array, so directly process 'value'
-  processValue(zoneNum, value);
-}
-
-// --------------------------------------------------
-// Helper function to parse subValue into a boolean, if possible
-// --------------------------------------------------
-function processValue(zoneNum, val) {
-  if (typeof val === 'boolean') {
-    // Already boolean
-    updateZone(zoneNum, val);
-
-  } else if (typeof val === 'string') {
-    // Check for "true", "false", "0", "1"
-    const lower = val.toLowerCase();
-    if (lower === 'true') {
-      updateZone(zoneNum, true);
-    } else if (lower === 'false') {
-      updateZone(zoneNum, false);
-    } else if (lower === '0') {
-      updateZone(zoneNum, false);
-    } else if (lower === '1') {
-      updateZone(zoneNum, true);
-    } else {
-      console.log('String not recognized as boolean/0/1:', val);
+    // -- Possibly parse data.message as JSON --
+    let value = data.message;
+    if (typeof value === 'string') {
+      try {
+        const parsed = JSON.parse(value);
+        value = parsed;
+      } catch (err) {
+        // leave as string if parse fails
+      }
     }
-
-  } else if (typeof val === 'number') {
-    // 0 => false, 1 => true
-    if (val === 0) {
-      updateZone(zoneNum, false);
-    } else if (val === 1) {
-      updateZone(zoneNum, true);
+  
+    // If it's an array, pick subValue = value[zoneNum % 4], else process value directly
+    if (Array.isArray(value)) {
+      const subValue = value[zoneNum % 4];
+      processValue(zoneNum, subValue);
     } else {
-      console.log('Number not recognized as boolean (only 0/1 allowed):', val);
+      processValue(zoneNum, value);
     }
-
-  } else {
-    // Any other type is unsupported
-    console.log('Unsupported type for data.message:', val);
-  }
-}
-
-  
-      
-      
-    
-  
-    
   });
+  
+  /**
+   * Convert subValue to a boolean, then updateZone(zoneNum, thatBoolean)
+   */
+  function processValue(zoneNum, val) {
+    if (typeof val === 'boolean') {
+      updateZone(zoneNum, val);
+    } else if (typeof val === 'string') {
+      const lower = val.toLowerCase();
+      if (lower === 'true') {
+        updateZone(zoneNum, true);
+      } else if (lower === 'false') {
+        updateZone(zoneNum, false);
+      } else if (lower === '0') {
+        updateZone(zoneNum, false);
+      } else if (lower === '1') {
+        updateZone(zoneNum, true);
+      } else {
+        console.log('String not recognized as boolean/0/1:', val);
+      }
+    } else if (typeof val === 'number') {
+      if (val === 0) {
+        updateZone(zoneNum, false);
+      } else if (val === 1) {
+        updateZone(zoneNum, true);
+      } else {
+        console.log('Number not recognized (only 0/1) -> boolean:', val);
+      }
+    } else {
+      console.log('Unsupported type for data.message:', val);
+    }
+  }
   
   socket.on('disconnect', () => {
     console.log('Socket.IO disconnected');
