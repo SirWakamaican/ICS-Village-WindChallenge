@@ -173,9 +173,11 @@ function resize() {
   socket.on('mqttMessage', (data) => {
     console.log("mqttMessage:", data);
   
-    // Suppose the topic ends with the zone number, e.g. "zone1" => 1
-    const lastChar = data.topic.charAt(data.topic.length - 1);
-    const zoneNum = parseInt(lastChar, 10);
+    const prefix = "zone";
+    
+    // Extract everything after "zone"
+    const zoneStr = data.topic.slice(prefix.length); // e.g. "10"
+    const zoneNum = parseInt(zoneStr, 10); 
     if (isNaN(zoneNum)) return;
   
     // -- Possibly parse data.message as JSON --
