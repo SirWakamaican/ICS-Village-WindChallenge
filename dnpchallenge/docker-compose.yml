@@ -10,21 +10,33 @@ networks:
 
 services:
   rtu:
-    image: ghcr.io/patsec/ot-sim/ot-sim:main
+    #image: ghcr.io/patsec/ot-sim/ot-sim:main
+    image: ot-sim:rpi
+    build:
+      context: .
+      dockerfile: Dockerfile.rpigpio
     privileged: true
     volumes:
       - ./rtuconfig.xml:/etc/ot-sim/config.xml
+      - ./rpi-gpio/ot-sim-rpi-gpio-module:/usr/local/bin/ot-sim-rpi-gpio-module
       - /dev/gpiomem:/dev/gpiomem
+      - /sys:/sys
     ports:
       - "2323:23"
+    entrypoint: ["ot-sim-cpu-module", "/etc/ot-sim/config.xml"]
+    
   ied:
-    image: ghcr.io/patsec/ot-sim/ot-sim:main
+    #image: ghcr.io/patsec/ot-sim/ot-sim:main
+    image: ot-sim:rpi
     privileged: true
     volumes:
       - ./iedconfig.xml:/etc/ot-sim/config.xml
+      - ./rpi-gpio/ot-sim-rpi-gpio-module:/usr/local/bin/ot-sim-rpi-gpio-module
       - /dev/gpiomem:/dev/gpiomem
+      - /sys:/sys
     ports:
       - "20000:20000"
+    entrypoint: ["ot-sim-cpu-module", "/etc/ot-sim/config.xml"]
   vizhelper:
     build: .
     depends_on:

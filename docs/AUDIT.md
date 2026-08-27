@@ -111,20 +111,6 @@ block and its own `<telnet>`/API-on-9101 config, and `ied` that owns the
 turbine relay, per `iedconfig.xml`'s `mode="server"` outstation and
 API-on-9102. Verified directly against both XML files.)*
 
-**Also fixed in a later pass:** `iedconfig.xml`'s logic program computed
-`turbine = not(control==1 and estop==0)`, which settled to **LOW** during
-normal operation and **HIGH** after a successful attack — backwards from
-`bh-intellirupter` and `mitm-modbus`'s turbine outputs, and also backwards
-for the DNP3-exposed `turbine.status` point (which mirrored the same
-inverted value, meaning a connecting DNP3 master would have read the
-opposite of the turbine's real state). Fixed to
-`turbine = (control==1 and estop==0)` — see `docs/PINOUT_MAP.md` §3 for
-the full cross-challenge polarity comparison. `vizhelper.py`'s own
-"stopped" detection (`estop==1 and led==0`) doesn't use `turbine`/`status`
-at all, so it was unaffected by the bug and remains correct after the fix
-— this was double-checked specifically so the fix wouldn't need to touch
-already-validated, working code.
-
 **Status: fixed on `main`.** This was already the most concrete and
 Pi-realistic of the five challenges (`rtuconfig.xml`/`iedconfig.xml` are
 well-formed ot-sim configs directly using `ot-sim-rpi-gpio-module` — genuine
@@ -309,9 +295,7 @@ following were found and fixed in this pass:
   elsewhere in this repo.
 - **Fixed:** `docker-compose.yml`'s `slave` service now has
   `privileged: true` + `/dev/gpiomem` mounted, matching `dnpchallenge`'s
-  pattern (confirmed this doesn't break simulation — Docker bind-mounts an
-  empty placeholder directory instead of failing when the host path
-  doesn't exist, verified directly in this pass).
+  pattern.
 - **Design gap addressed — see the new `attacker/` service below**, not
   a code bug: none of the above makes Ettercap's ARP-spoofing mechanic
   actually reachable by a participant, since `master`↔`slave` traffic
@@ -356,6 +340,52 @@ designed, just from inside this box instead of a participant's own NIC.
 this pass are fixed, the stack runs end-to-end, and the live-MITM
 experience is fully restored and confirmed working through the new
 `attacker/` box.
+
+### `re-challenge/` — new: vulnserver binary reverse-engineering target
+
+**Intent:** Unlike every other module here, the vulnerability is in a
+**binary**, not in protocol traffic or PLC/ladder logic. `re-challenge/Pi4/`
+ships an aarch64 (Raspberry Pi 4) executable, `vulnserver` — a modified
+libmodbus `unit-test-server` that serves Modbus/TCP and drives the turbine
+relay over GPIO18/PWM (`libpwm.so`) — plus its bundled `libmodbus.so.5`,
+the original bare-metal launch scripts (`runme_pi4.sh`, `setup_pins.sh`),
+and nothing else. As committed it had **no Dockerfile, compose file, or
+docs** — it was just the raw Pi payload, not a deployable challenge.
+
+**Status: added in this pass.** A container was built around the existing
+payload rather than modifying the binary (reversing it unmodified is the
+point):
+- `Dockerfile` — `arm64v8/debian:bookworm-slim`; the binary only needs
+  glibc plus its bundled `libmodbus.so.5`/`libpwm.so` via `LD_LIBRARY_PATH`
+  (confirmed via `readelf -d`: `NEEDED` is just those two plus `libc.so.6`/
+  the aarch64 loader), so no extra packages are installed. Bakes in a
+  pristine fallback copy of the whole `Pi4/` payload.
+- `docker-compose.yml` — builds/runs it `platform: linux/arm64`,
+  `privileged: true` with `/dev/gpiomem` mounted (same GPIO pattern as
+  `dnpchallenge`/`mitm-modbus`), publishes `1502:1502`, and gives it an
+  explicit `172.34.0.0/24` subnet so `audit-sidecar/` can attach with a
+  static IP (see Part 3).
+- **The `vulnserver` binary is bind-mounted** (`./Pi4/vulnserver:/challenge/vulnserver`)
+  rather than only baked in, so participants can patch or replace it from
+  outside the container without rebuilding — the point of an RE exercise.
+- `entrypoint.sh` reproduces `runme_pi4.sh` (`LD_LIBRARY_PATH=. ./vulnserver`,
+  defaulting to TCP mode on `0.0.0.0:1502`) but **guards** the Pi-only
+  `setup_pins.sh`/`raspi-gpio` step behind a `command -v` check so it still
+  starts in x86 simulation.
+- `README.md` — new: layout, the swappable-binary rationale, arm64-only run
+  instructions (native on the Pi; `tonistiigi/binfmt` for x86), and the
+  objective.
+
+**Architecture constraint (same class as `bh-intellirupter`'s wiringPi
+note):** the binary is ARM64, so this stack is arm64-only — it runs
+natively on the Pi and requires qemu-user emulation
+(`docker run --privileged tonistiigi/binfmt --install arm64`) on an x86
+dev host. Not build/run-verified end-to-end on real Pi hardware yet; the
+GPIO/PWM turbine-relay effect in particular can only be confirmed there.
+
+**Deliberately not documented:** the binary's real coil/register map and
+the memory-safety bug are the challenge, so no verified address list is
+published (the `audit-sidecar/` points for it are flagged best-effort).
 
 ### `mqtthelper/` — GPIO-to-MQTT bridge
 **Intent:** Poll physical GPIO pin state and republish per-zone status to
@@ -779,7 +809,7 @@ challenge's network as an additional member (the same way a shared
 span/tap port would join a physical switch), and exposes one web page
 (`http://<host>:8000`) where participants can:
 
-- watch a live, decoded feed of traffic across all five challenge networks
+- watch a live, decoded feed of traffic across all six challenge networks
   at once, tagged by which challenge it came from, and
 - read and write the specific protocol points that matter for finishing
   each challenge (Modbus coils/registers via `pymodbus`; `dnpchallenge`'s
@@ -787,13 +817,16 @@ span/tap port would join a physical switch), and exposes one web page
   point writes — `POST /api/v1/write/{tag}/{value}` — not just the reads
   `vizhelper.py` already used) — without needing to hand-roll a
   Modbus/DNP3 client themselves once they've identified what to touch from
-  the traffic view.
+  the traffic view. For Modbus points the address and device id (unit) are
+  editable per row, so a participant can reach an arbitrary coil/register or
+  a different unit id (useful for the RE challenges) without code changes.
 
 This keeps the "independent per-challenge networks" property intact while
 still giving one centralized, low-friction place to observe and interact —
-see `audit-sidecar/README.md` for setup (it must start *after* every
-challenge, since it attaches to their networks by name) and honest
-limitations:
+see `audit-sidecar/README.md` for setup (it mounts the Docker socket and
+attaches to each challenge's network at runtime, so it can be started at any
+time and follows challenges as they come up and go down, rather than having
+to start *after* every challenge) and honest limitations:
 
 - **It does not restore `mitm-modbus`'s Ettercap/ARP-spoofing mechanic.** A
   passive observer on the same Docker network doesn't reproduce "a
@@ -808,6 +841,10 @@ limitations:
 - `bh-intellirupter`'s exposed Modbus addresses are best-effort, read
   directly off `fixedfinal.st`'s declarations, not verified against
   OpenPLC's actual compiled address list.
+- `re-challenge`'s exposed coil/register points are best-effort by design —
+  that challenge is a binary RE exercise (Modbus/TCP on port 1502) whose
+  whole point is discovering the real address map, so the sidecar only
+  offers a couple of exploration starting points, not the solution.
 - The write panel has no authentication — anyone reaching port 8000 can
   affect another participant's in-progress attempt. Acceptable for a
   hands-on exhibit built around manipulating these systems; flag if that's

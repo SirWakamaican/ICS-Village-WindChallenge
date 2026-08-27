@@ -50,6 +50,8 @@ you'll learn enough of them here to get the turbine to stop.
 3. **Know what you're looking at when you find it.** Common ports/services
    you're likely to run into on this kind of exhibit:
    - **502** — Modbus TCP (talks to a PLC or RTU's coils/registers)
+   - **1502** — Modbus TCP on a non-standard port (a vulnerable Modbus
+     *server binary* worth pulling down and reversing, not just poking)
    - **20000** — DNP3 (talks to an RTU/IED outstation)
    - **23** — Telnet (sometimes exposed on RTU/IED nodes for diagnostics —
      don't assume it's meant to be open)
@@ -103,6 +105,7 @@ challenge, so once you understand one, the pattern carries over.
 | `bh-intellirupter` | **zone5** | Modbus TCP | PLC's Modbus port is published on the exhibit network (default `5000`). Connect with any Modbus client and look for the coils driving the ladder logic's trip/reset/turbine outputs. The OpenPLC web UI (default port `9000`) is also reachable — worth a look even if you don't touch it, to understand what's actually running. |
 | `dnpchallenge` | **zone2** | DNP3 (+ Telnet) | The IED's DNP3 outstation is directly reachable (default `20000`) — connect with a DNP3 master tool and read/write the `turbine.status`/`turbine.control` points. The RTU also exposes a Telnet console (default `2323`) with a `switch`/`led`/`estop` view — useful for understanding the e-stop logic even if the DNP3 side is where you'll actually act. |
 | `mitm-modbus` | **zone1** | Modbus TCP (via MITM) | `master`/`slave`'s Modbus conversation lives on a private network segment your own laptop can't reach directly. Use the in-network web terminal (no login, default port `7681`) to run Ettercap yourself and ARP-poison the link — that's the intended path here, not connecting to a published Modbus port. |
+| `re-challenge` | turbine (wiring-dependent) | Modbus TCP (binary RE) | A vulnerable Modbus **server binary** (`vulnserver`) is reachable on `1502/tcp`. The attack is in the binary itself, not the traffic: pull the executable down, reverse it (it's an aarch64/Pi build), find the bug in how it handles Modbus requests, and use that to drive the turbine relay. Watching the shared traffic view / reading a coil isn't enough here — you're meant to work out the real coil/register map yourself. |
 | `mqtthelper` | **zone3, zone4** | — (read-only telemetry) | Not an attack surface on its own — it mirrors two spare GPIO pins' raw state onto the dashboard. If either zone matters to a specific instance of this exhibit, staff will tell you what's physically wired to them. |
 
 If a shared traffic view (port 8000) or an in-network terminal (port 7681)

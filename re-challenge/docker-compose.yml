@@ -1,0 +1,42 @@
+# Reverse-engineering challenge: a vulnerable aarch64 Modbus server
+# ("vulnserver") that drives the turbine relay via GPIO/PWM. Participants
+# reverse and exploit the binary over Modbus TCP (port 1502).
+#
+# The binary is an ARM64 Raspberry Pi 4 build, so this stack is arm64-only:
+# it runs natively on the Pi, and needs qemu-user emulation on an x86 host
+# (see README.md).
+services:
+  vulnserver:
+    build: .
+    platform: linux/arm64
+    container_name: re-challenge-vulnserver
+    restart: unless-stopped
+    # Real GPIO/PWM passthrough for the turbine relay on the Pi. privileged +
+    # /dev/gpiomem matches the other GPIO-touching challenges; off a Pi,
+    # /dev/gpiomem doesn't exist and Docker bind-mounts an empty placeholder
+    # directory instead of failing, which the binary tolerates (its GPIO/PWM
+    # writes just have no physical effect in simulation).
+    privileged: true
+    volumes:
+      # The vulnserver binary is bind-mounted (not only baked into the image)
+      # so participants can patch/replace it externally without a rebuild -
+      # the whole point of the RE exercise. The image ships a pristine copy as
+      # a fallback if this file is ever removed.
+      - ./Pi4/vulnserver:/challenge/vulnserver
+      - /dev/gpiomem:/dev/gpiomem
+      - /sys:/sys
+    ports:
+      - "1502:1502"
+    networks:
+      default:
+        ipv4_address: 172.34.0.2
+
+networks:
+  default:
+    # Explicit subnet (like every other challenge) so audit-sidecar/ can attach
+    # with a known static IP and self-identify this network. Must match
+    # audit-sidecar's NETWORK_LABELS entry (172.34.0.) and the re-challenge
+    # block in audit-sidecar/docker-compose.yml.
+    ipam:
+      config:
+        - subnet: 172.34.0.0/24

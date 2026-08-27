@@ -3,6 +3,7 @@
 # comments) so the rtu container has something at host.docker.internal to
 # connect to as soon as it starts.
 cd "$(dirname "$0")"
+source venv/bin/activate
 python3 hmi.py &
 
 # Bring the PLC up first and give OpenPLC time to finish booting its

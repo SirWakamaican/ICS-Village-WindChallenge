@@ -27,6 +27,7 @@ flowchart LR
         BH["bh-intellirupter\nOpenPLC · Modbus/TCP"]
         DNP["dnpchallenge\nOT-Sim · DNP3"]
         MITM["mitm-modbus\nModbus master/slave + MITM"]
+        RE["re-challenge\nvulnserver · Modbus/TCP RE"]
     end
 
     subgraph Bridge["Telemetry bridges"]
@@ -49,6 +50,7 @@ flowchart LR
     BH -. tap .-> AUDIT
     DNP -. tap .-> AUDIT
     MITM -. tap .-> AUDIT
+    RE -. tap .-> AUDIT
     MQH -. tap .-> AUDIT
     VIZ -. tap .-> AUDIT
 ```
@@ -65,9 +67,10 @@ and the [`viz`](#5-viz--grid-dashboard) dashboard renders those zones on the Den
 | [`bh-intellirupter`](#1-bh-intellirupter--openplc-turbine-protection) | Modbus/TCP · OpenPLC · IEC 61131‑3 ST | Reading & writing PLC coils/inputs, abusing protection logic to trip or over‑run a turbine | `5000→502` Modbus, `9000→8080` OpenPLC web, `8888/8889` HMI |
 | [`dnpchallenge`](#2-dnpchallenge--dnp3-e-stop) | DNP3 · OT-Sim · Telnet | DNP3 master/outstation, control‑relay writes, Telnet field access, an e‑stop workflow | `20000` DNP3, `2323→23` Telnet, `9101/9102` REST |
 | [`mitm-modbus`](#3-mitm-modbus--modbus-man-in-the-middle) | Modbus/TCP · ettercap | ARP poisoning + packet filters that silently flip Modbus write values | container `502` Modbus |
-| [`mqtthelper`](#4-mqtthelper--gpiomqtt-bridge) | MQTT · Raspberry Pi GPIO | Bridging physical I/O to the dashboard | `1883` MQTT |
-| [`viz`](#5-viz--grid-dashboard) | Node.js · Socket.IO · MQTT · Mosquitto | The shared 16‑zone grid dashboard and TLS MQTT broker | `3000` HTTPS, `1883/8443` MQTT |
-| [`audit-sidecar`](#6-audit-sidecar--cross-challenge-traffic-view-and-control) | scapy · Flask · pymodbus | *Shared tooling, not a challenge.* One page to watch traffic across every challenge network and read/write the points that matter for each | `8000` web UI |
+| [`re-challenge`](#4-re-challenge--vulnserver-binary-reverse-engineering) | Modbus/TCP · aarch64 ELF | Reversing a vulnerable Modbus server binary and exploiting its request handling to drive the turbine relay | `1502` Modbus |
+| [`mqtthelper`](#5-mqtthelper--gpiomqtt-bridge) | MQTT · Raspberry Pi GPIO | Bridging physical I/O to the dashboard | `1883` MQTT |
+| [`viz`](#6-viz--grid-dashboard) | Node.js · Socket.IO · MQTT · Mosquitto | The shared 16‑zone grid dashboard and TLS MQTT broker | `3000` HTTPS, `1883/8443` MQTT |
+| [`audit-sidecar`](#7-audit-sidecar--cross-challenge-traffic-view-and-control) | scapy · Flask · pymodbus | *Shared tooling, not a challenge.* One page to watch traffic across every challenge network and read/write the points that matter for each | `8000` web UI |
 
 Each folder has its own `README.md` with the full details, wiring, and objective.
 
@@ -110,13 +113,25 @@ demonstrates a classic OT attack: sit between master and slave via ARP poisoning
 rewrite the coil value on the wire (`0xFF00` "ON" → `0x0000` "OFF"), so the operator's
 command never lands. Full details in [`mitm-modbus/README.md`](mitm-modbus/README.md).
 
-## 4. `mqtthelper` — GPIO/MQTT bridge
+## 4. `re-challenge` — vulnserver binary reverse engineering
+
+A deliberately vulnerable Modbus/TCP server ([`vulnserver`](re-challenge/Pi4/vulnserver))
+stands in for a turbine-relay controller. Unlike the other challenges, the weakness is in
+the **binary itself**, not the protocol traffic or PLC logic: the aarch64 (Raspberry Pi 4)
+executable is a modified libmodbus `unit-test-server` that drives the turbine relay over
+GPIO18/PWM and mishandles Modbus requests. Participants pull the binary, reverse it, find
+the memory-safety bug, and abuse it over `1502/tcp` to stop the turbine. The binary is
+**bind-mounted** ([`docker-compose.yml`](re-challenge/docker-compose.yml)) so it can be
+patched or swapped from outside the container without a rebuild. Full details in
+[`re-challenge/README.md`](re-challenge/README.md).
+
+## 5. `mqtthelper` — GPIO/MQTT bridge
 
 A small helper that runs `gpio readall` on a Raspberry Pi and publishes the state of
 specific pins to MQTT `zone*` topics, feeding the dashboard. Full details in
 [`mqtthelper/README.md`](mqtthelper/README.md).
 
-## 5. `viz` — grid dashboard
+## 6. `viz` — grid dashboard
 
 A Node.js + Express + Socket.IO app ([`server.js`](viz/server.js)) plus a Mosquitto
 broker. It subscribes to `zone1`…`zone16`, forwards updates to the browser over
@@ -124,7 +139,7 @@ WebSockets, and paints a 4×4 grid of zones over a Denver map — red = *Normal*
 green = *Down*. This is the shared scoreboard every other challenge reports into. Full
 details in [`viz/README.md`](viz/README.md).
 
-## 6. `audit-sidecar` — cross-challenge traffic view and control
+## 7. `audit-sidecar` — cross-challenge traffic view and control
 
 *Shared tooling, not a challenge.* Every challenge runs on its own private Docker bridge
 network, so none of that internal Modbus/DNP3/MQTT traffic ever reaches a physical wire a
@@ -133,7 +148,7 @@ participant could sniff (see [`docs/AUDIT.md`](docs/AUDIT.md) Part 3). The audit
 the way a shared SPAN/tap port would on a real switch — and serves a single page at
 `http://<host>:8000` where participants can:
 
-- **watch a live, best‑effort‑decoded traffic feed** across all five challenge networks,
+- **watch a live, best‑effort‑decoded traffic feed** across all six challenge networks,
   tagged by challenge (Modbus function codes and cleartext Telnet are decoded; DNP3 and
   anything else show as raw hex), and
 - **read and write the specific protocol points** that finish each challenge — Modbus
@@ -160,12 +175,39 @@ Each challenge is self‑contained and driven by Docker Compose. From a challeng
 docker compose up --build
 ```
 
+### One‑command bring‑up
+
+To stand up (or tear down) the whole exhibit in the correct order without visiting each
+folder, use the top‑level orchestrator. It keeps every folder as its own independent
+Compose project — which is what lets `audit-sidecar` attach to each challenge network by
+name — and simply runs them in sequence:
+
+```bash
+./up.sh            # viz → every challenge → audit-sidecar   (add --build to rebuild)
+./down.sh          # reverse order: audit-sidecar → challenges → viz
+# or, equivalently:
+make up            # make up-build / make down / make ps / make logs
+```
+
+Bring up only some challenges (e.g. skipping the Pi‑only `bh-intellirupter` build on an
+x86 host) with `CHALLENGES="dnpchallenge mitm-modbus mqtthelper re-challenge" ./up.sh` —
+note that `audit-sidecar` references every challenge network, so trim it too if you skip
+one.
+
+Bring up only one challenge and related containers by using the command make up-<challenge-name>.
+For example to bring up only the re-challenge, use the following command:
+
+```bash
+make up-re-challenge
+``` 
+
 Recommended order for standing up the environment:
 
 1. **`viz`** — start the dashboard + MQTT broker first so other challenges have somewhere
    to publish. Generate certs with [`viz/createcerts.sh`](viz/createcerts.sh) if needed,
    then browse to `https://localhost:3000`.
-2. **A field challenge** — bring up `bh-intellirupter`, `dnpchallenge`, or `mitm-modbus`.
+2. **A field challenge** — bring up `bh-intellirupter`, `dnpchallenge`, `mitm-modbus`, or
+   `re-challenge`.
 3. **Bridges** — `mqtthelper` / `vizhelper` if you are wiring physical or simulated I/O
    into the dashboard.
 4. **`audit-sidecar`** (optional, last) — once every challenge network exists, bring this
@@ -193,6 +235,7 @@ ICS-Village-WindChallenge/
 ├── bh-intellirupter/   # OpenPLC + Modbus turbine protection challenge
 ├── dnpchallenge/       # OT-Sim DNP3 master/outstation e-stop challenge
 ├── mitm-modbus/        # Modbus master/slave + ettercap MITM filters
+├── re-challenge/       # vulnserver aarch64 Modbus binary reverse-engineering target
 ├── mqtthelper/         # Raspberry Pi GPIO → MQTT bridge
 ├── viz/                # Node.js grid dashboard + Mosquitto MQTT broker
 ├── docs/               # Repo audit, admin, player, and pinout notes

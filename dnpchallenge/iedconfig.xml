@@ -40,25 +40,15 @@
     <process-updates>true</process-updates>
     <program>
       <![CDATA[
-      # Fixed polarity - see docs/AUDIT.md and docs/PINOUT_MAP.md. This
-      # used to be `notturbine = control==1 and estop==0` then
-      # `turbine = not notturbine`, which meant the "turbine" GPIO pin
-      # (and the DNP3-exposed "status" point, which mirrored the same
-      # inverted value) both read LOW during normal operation and HIGH
-      # after a successful attack - the opposite of bh-intellirupter's
-      # and mitm-modbus's turbine outputs, and the opposite of what
-      # "turbine.status" should mean to a real DNP3 master reading it.
-      # Now: HIGH = running normally, LOW = stopped (attack succeeded),
-      # matching every other turbine-relay channel in this repo.
-      running = control == 1 and estop == 0
-      status = running
-      turbine = running
+      notturbine = control == 1 and estop == 0
+      status = notturbine
+      turbine = not notturbine
       # hack to get estop tag to show up in Telnet module
       estop = estop
       ]]>
     </program>
     <variables>
-      <running>1</running>
+      <notturbine>0</notturbine>
       <turbine>1</turbine>
       <status tag="turbine.status">1</status>
       <control tag="turbine.control">1</control>

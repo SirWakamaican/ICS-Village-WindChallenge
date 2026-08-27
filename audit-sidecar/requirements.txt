@@ -3,3 +3,4 @@ scapy
 pymodbus==3.6.8
 requests
 psutil
+docker

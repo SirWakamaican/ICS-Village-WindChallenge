@@ -48,6 +48,26 @@ CHALLENGES = [
         ],
     },
     {
+        "id": "re-challenge",
+        "label": "re-challenge (vulnserver - Modbus RE target)",
+        "protocol": "modbus",
+        "host": "vulnserver",
+        "port": 1502,
+        "unit": 1,
+        "note": "vulnserver is a reverse-engineering target - discovering its "
+                "real coil/register map (and the memory-safety bug behind it) "
+                "IS the challenge, so no verified address list is published. "
+                "The points below are best-effort exploration starting points "
+                "only; the binary logs every coil write it accepts to stdout "
+                "(docker logs re-challenge-vulnserver), so watch there to see "
+                "which address actually drives the turbine relay.",
+        "elements": [
+            {"name": "Coil 0 (turbine relay? - best-effort)", "kind": "coil", "address": 0, "access": "rw"},
+            {"name": "Coil 1 (best-effort)", "kind": "coil", "address": 1, "access": "rw"},
+            {"name": "Holding reg 0 (best-effort)", "kind": "holding_register", "address": 0, "access": "rw"},
+        ],
+    },
+    {
         "id": "dnpchallenge-rtu",
         "label": "dnpchallenge - rtu (switch / LED / e-stop logic)",
         "protocol": "otsim",

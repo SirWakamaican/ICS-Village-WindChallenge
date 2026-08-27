@@ -1,6 +1,11 @@
-# Bring up every challenge stack FIRST (bh-intellirupter, dnpchallenge,
-# mitm-modbus, mqtthelper, viz) so their networks exist, then bring this
-# up. Docker errors on `external: true` networks that don't exist yet.
+# This sidecar can be brought up at any time - before, after, or between
+# challenge stacks (bh-intellirupter, dnpchallenge, mitm-modbus, mqtthelper,
+# viz, re-challenge). It does NOT declare those challenge networks statically
+# (which would make Docker refuse to start it until every one exists).
+# Instead it mounts the Docker socket and, at runtime, attaches itself to
+# each challenge network as that challenge comes up and detaches as it goes
+# down (see network_monitor in sidecar.py). Bring challenges up/down freely
+# while this keeps running.
 #
 # This container joins every challenge's network as an additional member,
 # the same way a shared span/tap port would on real hardware - each
@@ -19,31 +24,18 @@ services:
       - NET_RAW
     ports:
       - "8000:8000"
-    networks:
-      bh-intellirupter:
-        ipv4_address: 172.30.0.9
-      dnpchallenge:
-        ipv4_address: 172.31.0.9
-      mitm-modbus:
-        ipv4_address: 172.20.0.9
-      mqtthelper:
-        ipv4_address: 172.32.0.9
-      viz:
-        ipv4_address: 172.33.0.9
+    # The Docker socket lets the sidecar attach/detach itself to each
+    # challenge network dynamically. This grants Docker control (effectively
+    # host root) to this container - see README.md "Security note".
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
 
 networks:
-  bh-intellirupter:
-    external: true
-    name: proxiable
-  dnpchallenge:
-    external: true
-    name: dnpchallenge_default
-  mitm-modbus:
-    external: true
-    name: mitm-modbus_my_network
-  mqtthelper:
-    external: true
-    name: mqtthelper_default
-  viz:
-    external: true
-    name: viz_default
+  default:
+    # Explicit subnet (like every other challenge) so audit-sidecar/ can attach
+    # with a known static IP and self-identify this network. Must match
+    # audit-sidecar's NETWORK_LABELS entry (172.18.0.) and the re-challenge
+    # block in audit-sidecar/docker-compose.yml.
+    ipam:
+      config:
+        - subnet: 172.18.0.0/24

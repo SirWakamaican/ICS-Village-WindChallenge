@@ -1,0 +1,4 @@
+FROM ghcr.io/patsec/ot-sim/ot-sim:main
+WORKDIR /usr/local/src/ot-sim/
+RUN python3 -m pip install src/python
+RUN pip install RPi.GPIO
